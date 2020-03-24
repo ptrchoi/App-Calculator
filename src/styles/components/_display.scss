@@ -1,0 +1,16 @@
+/* ------------------------------------------
+Display classes
+ -------------------------------------------*/
+.display-container {
+  @extend .container;
+  align-content: center;
+  background-color: white;
+  color: $dark-blue;
+  grid-template-columns: 4fr;
+  height: $button-width;
+  justify-items: end;
+}
+.display {
+  font-size: calc(4px + 7.5vw);
+  padding-right: 4px;
+}

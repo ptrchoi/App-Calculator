@@ -1,0 +1,65 @@
+/* ------------------------------------------
+Container classes, wrap button sections and display
+ -------------------------------------------*/
+.grid {
+  background-color: $light-gray;
+  border: 4px solid $light-gray;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.container {
+  align-items: center;
+  background-color: $light-gray;
+  display: grid;
+  justify-items: center;
+  margin: auto;
+  width: $calc-width;
+}
+.functions-container {
+  @extend .container;
+  grid-template-columns: auto auto auto;
+  height: $calc-width / 4;
+}
+.buttons-container {
+  @extend .container;
+  grid-template-columns: auto auto auto auto;
+  height: $calc-width;
+}
+
+/* ------------------------------------------
+ Button classes
+ -------------------------------------------*/
+.button {
+  background-color: $light-gray;
+  border: none;
+  color: $dark-blue;
+  cursor: pointer;
+  font-size: calc(16px + 6vw);
+  font-weight: 700;
+  height: $calc-width / 4;
+  outline: none;
+  transition: ease-out 0.1s;
+  width: $calc-width / 4;
+}
+.operator-button {
+  @extend .button;
+  color: $orange;
+}
+.function-button {
+  @extend .button;
+  color: $orange;
+  width: $calc-width / 3;
+}
+//Added styling for '=' due to FreeCodeCamp req
+#equals {
+  font-size: calc(46px + 6vw);
+}
+
+/* ------------------------------------------
+Button press transition animation
+ -------------------------------------------*/
+.pulse {
+  background-color: $dark-gray;
+}
