@@ -4,6 +4,8 @@ $dark-gray: rgb(179, 179, 179);
 $light-gray: rgb(240, 240, 240);
 $orange: rgb(255, 111, 0);
 
-//Default Mobile-first layout/sizing:
-$calc-width: 92vw;
-$button-width: calc(92vw / 4); //4 buttons across
+// 5 rows of buttons, 1 rows for display = 6 rows total; percentages based on # of rows from total
+$button-height: 16vh;
+$function-container-height: 16vh;
+$display-container-height: 16vh;
+$button-container-height: 66vh;

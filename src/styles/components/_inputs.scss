@@ -2,64 +2,52 @@
 Container classes, wrap button sections and display
  -------------------------------------------*/
 .grid {
-  background-color: $light-gray;
-  border: 4px solid $light-gray;
-  border-radius: 5px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
 }
 .container {
-  align-items: center;
-  background-color: $light-gray;
-  display: grid;
-  justify-items: center;
-  margin: auto;
-  width: $calc-width;
+	align-items: center;
+	display: grid;
+	justify-items: center;
+	width: 100%;
 }
 .functions-container {
-  @extend .container;
-  grid-template-columns: auto auto auto;
-  height: $calc-width / 4;
+	@extend .container;
+	grid-template-columns: auto auto auto;
+	height: $function-container-height;
 }
 .buttons-container {
-  @extend .container;
-  grid-template-columns: auto auto auto auto;
-  height: $calc-width;
+	@extend .container;
+	grid-template-columns: auto auto auto auto;
+	height: $button-container-height;
 }
 
 /* ------------------------------------------
  Button classes
  -------------------------------------------*/
 .button {
-  background-color: $light-gray;
-  border: none;
-  color: $dark-blue;
-  cursor: pointer;
-  font-size: calc(16px + 6vw);
-  font-weight: 700;
-  height: $calc-width / 4;
-  outline: none;
-  transition: ease-out 0.1s;
-  width: $calc-width / 4;
+	background-color: $light-gray;
+	border: none;
+	color: $dark-blue;
+	cursor: pointer;
+	font-family: "Lato", "Montserrat", sans-serif;
+	font-size: 5.5em;
+	font-weight: 700;
+	height: $button-height;
+	outline: none;
+	transition: ease-out 0.1s;
+	width: 100%;
 }
-.operator-button {
-  @extend .button;
-  color: $orange;
-}
+.operator-button,
 .function-button {
-  @extend .button;
-  color: $orange;
-  width: $calc-width / 3;
-}
-//Added styling for '=' due to FreeCodeCamp req
-#equals {
-  font-size: calc(46px + 6vw);
+	@extend .button;
+	color: $orange;
 }
 
 /* ------------------------------------------
 Button press transition animation
  -------------------------------------------*/
 .pulse {
-  background-color: $dark-gray;
+	background-color: $dark-gray;
 }

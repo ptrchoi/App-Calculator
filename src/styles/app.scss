@@ -1,10 +1,12 @@
+//Baseline
 @import "base/variables";
 @import "base/main";
 
 //Components
+@import "components/calculator";
 @import "components/inputs";
 @import "components/display";
 @import "components/infoModal";
 
 //Media Queries
-@import "base/mediaQueries";
+// @import "base/mediaQueries";
