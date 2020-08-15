@@ -11,6 +11,19 @@ Display classes
 	justify-items: end;
 }
 .display {
-	font-size: 4.5em;
-	padding-right: 1.5rem;
+	// font-size: 4.5em;
+	padding-right: 1em;
+}
+
+// Smaller screens
+@media only screen and (max-width: 825px) {
+	.display {
+		font-size: 1.7em;
+	}
+}
+// Larger screens and landscape
+@media only screen and (min-width: 826px) {
+	.display {
+		font-size: 58px;
+	}
 }
