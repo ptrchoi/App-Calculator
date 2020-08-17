@@ -1,4 +1,5 @@
 import React from 'react';
+import $ from 'jquery';
 import Display from './Display';
 import InfoModal from './InfoModal';
 
@@ -118,7 +119,7 @@ class Inputs extends React.Component {
 
 		this.animateButton(e.target);
 
-		//UPDATE Inputs
+		//Test for number input immediately following a result. If so, reset number.
 		if (curInputType !== 'NUM') {
 			//Test for number input immediately following a result. If so, reset number.
 			if (curInputType === 'CALC') {
@@ -133,24 +134,28 @@ class Inputs extends React.Component {
 			curInputType = 'NUM';
 		}
 
-		//Format decimal input
+		//Test Digit input for number or decimal
+		//If decimal, format decimal input
 		if (digit === '.') {
 			//If a leading decimal, add a leading zero
 			if (digits.length < 1) {
 				validatedDigit = [ 0, '.' ];
 				decimal = true;
 			} else if (!decimal) {
+				//If the number doesn't already have a decimal, add it
 				validatedDigit = [ '.' ];
 				decimal = true;
 			} else {
+				//Else ignore decimal input as there is already a decimal in the number
 				return;
 			}
-			//Else add digit
+			//Else input is a digit, add digit
 		} else {
-			//Check for leading zero (don't allow multiple leading zeros)
-			if (digits.length === 0 || Number(digits[0]) !== 0) {
+			//Check for non-leading zero (don't allow multiple leading zeros)
+			if (digits.length === 0 || Number(digits[0]) !== 0 || decimal === true) {
 				validatedDigit = [ digit ];
 			} else {
+				//Else ignore zero input
 				return;
 			}
 		}
