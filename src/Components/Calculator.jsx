@@ -13,7 +13,8 @@ class Calculator extends React.Component {
 		super(props);
 
 		this.state = {
-			calcQueue: {
+			calcQueue: [],
+			calcFormula: {
 				operand1: 0,
 				operator: 'none', // Default to * for # -> = input?
 				operand2: 0
@@ -21,7 +22,8 @@ class Calculator extends React.Component {
 			calcMem: {
 				result: null, // need to pass this val to Inputs
 				prevInput: null,
-				prevOperator: 'none'
+				prevOperator: 'none',
+				prevOperand: null
 			}
 		};
 
@@ -43,8 +45,6 @@ class Calculator extends React.Component {
 	handleBackspace(updatedNum) {
 		let { prevInput } = this.state.calcMem;
 
-		// console.log('handling backspace with updatedNum: ', updatedNum, ' prevInput: ', prevInput);
-
 		// Check for valid #
 		if (isNaN(updatedNum)) updatedNum = 0;
 
@@ -59,39 +59,28 @@ class Calculator extends React.Component {
 		}
 	}
 	handleOperation(op, operand) {
-		console.log('handleOperation() - op: ', op, ' operand: ', operand);
+		let { calcQueue, calcFormula, calcMem } = this.state;
+		let { operand1, operator } = calcFormula;
+		let { result, prevInput } = calcMem;
 
-		let { operand1, operator } = this.state.calcQueue;
-		// console.log('handleOperation() - this.state.calcQueue.operator: ', operator);
-
-		let { result, prevInput } = this.state.calcMem;
-
-		// if (Array.isArray(operand1)) {
-		// 	console.log('is array = TRUE');
-		// } else {
-		// 	console.log('is array = FALSE');
-		// }
-		if (this.state.calcQueue.operator === 'none') {
-			console.log('operator === none');
-		} else {
-			console.log('operator !== none');
-		}
-
-		// Special case: [op] directly after [=]
-		// Behavior: op1 = result, op2 = current operand
+		// Edge case: [op] directly after [=]
 		if (prevInput === 'equals') {
-			// console.log("prevInput === 'equals'");
 			operand1 = result;
-			operator = op;
 		} else {
-			// Else assign operand 1 and op
-			operand1 = operand;
-			operator = op;
+			// Else just add new operand and operation as normal
+			calcQueue.push(operand, op);
+
+			// Start new calculation
+			if (operator === 'none') operand1 = operand;
+			else
+				// Else Replace operand1 w/ calcQueue
+				operand1 = calcQueue;
 		}
 		this.setState({
-			calcQueue: {
+			calcQueue: calcQueue,
+			calcFormula: {
 				operand1: operand1,
-				operator: operator
+				operator: op
 			},
 			calcMem: {
 				result: result,
@@ -100,53 +89,57 @@ class Calculator extends React.Component {
 		});
 	}
 	handleEquals(operand) {
-		let { operand1, operator, operand2 } = this.state.calcQueue;
-		let { result, prevInput, prevOperator } = this.state.calcMem;
-		console.log('Calculator: handleEquals() - prevInput: ', prevInput);
+		let { calcFormula, calcMem } = this.state;
+		let { operand1, operator, operand2 } = calcFormula;
+		let { result, prevInput, prevOperator, prevOperand } = calcMem;
 
-		// Special case: [=] directly after [op]
-		// Behavior: op1 = result, op2 = result
+		// console.log('Calculator: handleEquals() - prevInput: ', prevInput);
+
+		// Edge case: [=] directly after [op]
 		if (prevInput === 'operator') {
 			operand1 = result;
 			operand2 = result;
 		} else if (prevInput === 'equals') {
-			// Special case: [=] directly after [=]
-			// Behavior: op1 = result, op2 = current operand
+			// Edge case: [=] directly after [=]
 			operand1 = result;
 			operator = prevOperator;
-			operand2 = operand;
+			operand2 = prevOperand;
 		} else {
 			operand2 = operand;
 		}
 
-		result = this.performCalculation(operand1, operator, operand2);
+		// If operand1 = calcQueue, omit operator since already captured in the queue
+		result = this.performCalculation(operand1, operator, operand2, Array.isArray(operand1));
 
 		this.setState({
-			calcQueue: {
+			calcQueue: [],
+			calcFormula: {
 				operand1: operand1,
-				operator: operator,
+				operator: 'none', // reset operator
 				operand2: operand2
 			},
 			calcMem: {
 				result: result,
 				prevInput: 'equals',
-				prevOperator: operator
+				prevOperator: operator,
+				prevOperand: operand2
 			}
 		});
 	}
-	performCalculation(x, op, y) {
-		// Check for valid operand types/values
-		if (isNaN(x)) x = 0;
-		if (isNaN(y)) y = 0;
-		let formulaStr = convertArrToString([ x, op, y ]);
+	performCalculation(x, op, y, ignoreOp) {
+		let formulaStr = '';
+		if (ignoreOp) formulaStr = convertArrToString([ x, y ]);
+		else formulaStr = convertArrToString([ x, op, y ]);
+
 		console.log('formulaStr: ', formulaStr);
 
 		return eval(formulaStr);
 	}
 	handleClear() {
-		console.log('Calculator: handleClear');
+		// console.log('Calculator: handleClear');
 		this.setState({
-			calcQueue: {
+			calcQueue: [],
+			calcFormula: {
 				operand1: 0,
 				operator: 'none',
 				operand2: 0
@@ -154,7 +147,8 @@ class Calculator extends React.Component {
 			calcMem: {
 				result: null, // need to pass this val to Inputs
 				prevInput: null,
-				prevOperator: 'none'
+				prevOperator: 'none',
+				prevOperand: null
 			}
 		});
 	}
@@ -167,7 +161,6 @@ class Calculator extends React.Component {
 					onOperator={this.handleOperation}
 					onEquals={this.handleEquals}
 					onClear={this.handleClear}
-					calcQueue={this.state.calcQueue}
 					calcMem={this.state.calcMem}
 				/>
 			</div>
@@ -178,42 +171,42 @@ class Calculator extends React.Component {
 export default Calculator;
 
 // handleOperation(operation) {
-// 	let { calcQueue } = this.state;
+// 	let { calcFormula } = this.state;
 // 	let { opType, operand, operator } = operation;
 
-// 	//Update the calcQueue with the operand and operator based on the type of operation (ie: multiple operators input sequentially => SWAP)
+// 	//Update the calcFormula with the operand and operator based on the type of operation (ie: multiple operators input sequentially => SWAP)
 // 	if (opType === 'ADD') {
-// 		calcQueue = calcQueue.concat([ operand, operator ]);
+// 		calcFormula = calcFormula.concat([ operand, operator ]);
 // 	} else if (opType === 'SWAP') {
-// 		calcQueue.pop();
-// 		calcQueue = calcQueue.concat(operator);
+// 		calcFormula.pop();
+// 		calcFormula = calcFormula.concat(operator);
 // 	} else {
 // 		//opType === NEW
-// 		calcQueue = [ operand, operator ];
+// 		calcFormula = [ operand, operator ];
 // 	}
 
 // 	this.setState({
-// 		calcQueue: calcQueue,
+// 		calcFormula: calcFormula,
 // 		result: null
 // 	});
 // }
 // handleEquals(calculation) {
-// 	let { result, calcQueue } = this.state;
+// 	let { result, calcFormula } = this.state;
 // 	let { replaceQueue, x, y, op } = calculation;
 
 // 	//Test if new calculation needed (ie. operating on previously calculated result (ie. previous result is an operand))
 // 	if (!replaceQueue) {
-// 		x = calcQueue;
+// 		x = calcFormula;
 // 	} else {
-// 		x = calcQueue;
+// 		x = calcFormula;
 // 		// x = [ x, op ];
 // 	}
-// 	calcQueue = x.concat([ y ]);
+// 	calcFormula = x.concat([ y ]);
 
-// 	let formula = convertArrToString(calcQueue);
+// 	let formula = convertArrToString(calcFormula);
 // 	result = eval(formula);
 // 	this.setState({
-// 		calcQueue: calcQueue,
+// 		calcFormula: calcFormula,
 // 		result: result
 // 	});
 // 	console.log('Calculator>handleEquals - setState for result: ', result);
