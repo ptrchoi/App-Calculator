@@ -15,16 +15,18 @@ class Calculator extends React.Component {
 		this.state = {
 			calcQueue: {
 				operand1: 0,
-				operator: '*', // Default to * for # -> = input?
+				operator: 'none', // Default to * for # -> = input?
 				operand2: 0
 			},
 			calcMem: {
 				result: null, // need to pass this val to Inputs
-				prevInput: null
+				prevInput: null,
+				prevOperator: 'none'
 			}
 		};
 
 		this.handleDigitInput = this.handleDigitInput.bind(this);
+		this.handleBackspace = this.handleBackspace.bind(this);
 		this.handleOperation = this.handleOperation.bind(this);
 		this.handleEquals = this.handleEquals.bind(this);
 		this.performCalculation = this.performCalculation.bind(this);
@@ -38,6 +40,24 @@ class Calculator extends React.Component {
 			}
 		});
 	}
+	handleBackspace(updatedNum) {
+		let { prevInput } = this.state.calcMem;
+
+		// console.log('handling backspace with updatedNum: ', updatedNum, ' prevInput: ', prevInput);
+
+		// Check for valid #
+		if (isNaN(updatedNum)) updatedNum = 0;
+
+		// If [backspace] on a result, update the modified result
+		if (prevInput === 'equals') {
+			this.setState({
+				calcMem: {
+					result: updatedNum,
+					prevInput: prevInput
+				}
+			});
+		}
+	}
 	handleOperation(op, operand) {
 		console.log('handleOperation() - op: ', op, ' operand: ', operand);
 
@@ -45,6 +65,17 @@ class Calculator extends React.Component {
 		// console.log('handleOperation() - this.state.calcQueue.operator: ', operator);
 
 		let { result, prevInput } = this.state.calcMem;
+
+		// if (Array.isArray(operand1)) {
+		// 	console.log('is array = TRUE');
+		// } else {
+		// 	console.log('is array = FALSE');
+		// }
+		if (this.state.calcQueue.operator === 'none') {
+			console.log('operator === none');
+		} else {
+			console.log('operator !== none');
+		}
 
 		// Special case: [op] directly after [=]
 		// Behavior: op1 = result, op2 = current operand
@@ -70,7 +101,7 @@ class Calculator extends React.Component {
 	}
 	handleEquals(operand) {
 		let { operand1, operator, operand2 } = this.state.calcQueue;
-		let { result, prevInput } = this.state.calcMem;
+		let { result, prevInput, prevOperator } = this.state.calcMem;
 		console.log('Calculator: handleEquals() - prevInput: ', prevInput);
 
 		// Special case: [=] directly after [op]
@@ -82,6 +113,7 @@ class Calculator extends React.Component {
 			// Special case: [=] directly after [=]
 			// Behavior: op1 = result, op2 = current operand
 			operand1 = result;
+			operator = prevOperator;
 			operand2 = operand;
 		} else {
 			operand2 = operand;
@@ -97,11 +129,15 @@ class Calculator extends React.Component {
 			},
 			calcMem: {
 				result: result,
-				prevInput: 'equals'
+				prevInput: 'equals',
+				prevOperator: operator
 			}
 		});
 	}
 	performCalculation(x, op, y) {
+		// Check for valid operand types/values
+		if (isNaN(x)) x = 0;
+		if (isNaN(y)) y = 0;
 		let formulaStr = convertArrToString([ x, op, y ]);
 		console.log('formulaStr: ', formulaStr);
 
@@ -112,12 +148,13 @@ class Calculator extends React.Component {
 		this.setState({
 			calcQueue: {
 				operand1: 0,
-				operator: '*',
+				operator: 'none',
 				operand2: 0
 			},
 			calcMem: {
 				result: null, // need to pass this val to Inputs
-				prevInput: null
+				prevInput: null,
+				prevOperator: 'none'
 			}
 		});
 	}
@@ -126,6 +163,7 @@ class Calculator extends React.Component {
 			<div className="calc-wrapper">
 				<Inputs
 					onDigit={this.handleDigitInput}
+					onBackspace={this.handleBackspace}
 					onOperator={this.handleOperation}
 					onEquals={this.handleEquals}
 					onClear={this.handleClear}

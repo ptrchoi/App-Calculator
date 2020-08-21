@@ -80,7 +80,7 @@ class Inputs extends React.Component {
 		e.preventDefault();
 		this.animateButton(e.target);
 
-		let { curDigitArr } = this.state;
+		let { curDigitArr, decimal } = this.state;
 
 		let digit = e.target.value;
 		console.log('handleDigit() - digit: ', digit);
@@ -89,8 +89,10 @@ class Inputs extends React.Component {
 		console.log('before switch statement - prevInput: ', prevInput);
 
 		// Start a new number (replace digit array)
-		if (prevInput === 'equals' || prevInput === 'operator') curDigitArr = digit;
-		else if (digit === '0' && curDigitArr.length === 0)
+		if (prevInput === 'equals' || prevInput === 'operator') {
+			curDigitArr = digit;
+			decimal = false; // reset decimal with new number
+		} else if (digit === '0' && curDigitArr.length === 0)
 			// Ignore if a leading zero
 			return;
 		else
@@ -99,6 +101,7 @@ class Inputs extends React.Component {
 
 		this.setState({
 			curDigitArr: curDigitArr,
+			decimal: decimal,
 			displayState: 'input'
 		});
 
@@ -131,14 +134,12 @@ class Inputs extends React.Component {
 	handleOperator(e) {
 		e.preventDefault();
 		this.animateButton(e.currentTarget);
+
 		let op = e.currentTarget.value;
-
 		let { prevInput } = this.props.calcMem;
-
-		// console.log('handleOperator() - op: ', op);
-
-		// Special case: [op] directly after [=], should continue display prev result until new number input
 		let display = 'input';
+
+		// Special case: [op] directly after [=], should continue to display prev result until new number input
 		if (prevInput === 'equals') display = 'result';
 
 		// Upon operator input, set curOperand
@@ -170,28 +171,45 @@ class Inputs extends React.Component {
 		e.preventDefault();
 		this.animateButton(e.currentTarget);
 
-		console.log('handleBack()');
+		// Get what's currently displayed (input or result)
+		let { curDigitArr, displayState } = this.state;
 
-		// let { inputs, number } = this.state;
-		// let { digits } = number;
-		// let { curInputType } = inputs;
+		if (displayState === 'result') {
+			let { result } = this.props.calcMem;
 
-		// this.animateButton(e.currentTarget);
+			// Ignore/return if invalid number
+			if (isNaN(result) || result === null || result.length <= 0 || result === 0) return;
 
-		// if (curInputType === 'NUM' && digits.length > 0) {
-		// 	digits.pop();
-		// 	let updatedNum = convertDigitsToFloat(digits);
+			// Convert result into an array of digits
+			result = Array.from(String(result), Number);
 
-		// 	this.setState({
-		// 		number: {
-		// 			digits: digits,
-		// 			value: updatedNum
-		// 		},
-		// 		outputs: {
-		// 			toDisplay: digits
-		// 		}
-		// 	});
-		// }
+			console.log('result: ', result);
+			// Search/replace any decimal (ie.NaN)
+			result.forEach((item, i) => {
+				if (isNaN(item)) result[i] = '.';
+			});
+			result.pop();
+
+			console.log('result after pop: ', result);
+
+			// If result = [], set to zero before passing to parent
+			if (result.length < 1) result = 0;
+			else
+				// Pass new result back to parent as float
+				this.props.onBackspace(convertDigitsToFloat(result));
+
+			this.setState({
+				displayState: 'result'
+			});
+		} else {
+			if (curDigitArr.length > 0) curDigitArr.pop();
+
+			this.setState({
+				curDigitArr: curDigitArr
+			});
+			// Notify parent of digit input
+			this.props.onDigit();
+		}
 	}
 	handleClear(e) {
 		e.preventDefault();
@@ -201,6 +219,7 @@ class Inputs extends React.Component {
 
 		this.setState({
 			curDigitArr: [],
+			curOperand: 0,
 			decimal: false,
 			displayState: 'input'
 		});
