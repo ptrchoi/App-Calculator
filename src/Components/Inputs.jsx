@@ -25,7 +25,7 @@ class Inputs extends React.Component {
 		super(props);
 
 		this.state = {
-			curDigitArr: [],
+			curDigitArr: [ 0 ],
 			curOperand: 0,
 			decimal: false,
 			displayState: 'input' // input || result
@@ -91,7 +91,7 @@ class Inputs extends React.Component {
 		let digit = e.target.value;
 
 		// Start a new number (replace digit array)
-		if (prevInput === 'equals' || prevInput === 'operator') {
+		if (prevInput === 'equals' || prevInput === 'operator' || (curDigitArr.length === 1 && curDigitArr[0] === 0)) {
 			curDigitArr = [ digit ];
 			decimal = false; // reset decimal flag on new number
 		} else if (digit === '0' && curDigitArr.length === 0)
@@ -142,8 +142,6 @@ class Inputs extends React.Component {
 
 		// Special case: [op] directly after [=], should continue to display prev result until new number input
 		if (prevInput === 'equals') display = 'result';
-
-		console.log('Inputs - handleOperator() prevInput: ', prevInput, ' curDigitArr: ', this.state.curDigitArr);
 
 		// Upon operator input, set curOperand from digit array
 		let operand = convertDigitsToFloat(this.state.curDigitArr);
@@ -218,7 +216,7 @@ class Inputs extends React.Component {
 		this.props.onClear();
 
 		this.setState({
-			curDigitArr: [],
+			curDigitArr: [ 0 ],
 			curOperand: 0,
 			decimal: false,
 			displayState: 'input'

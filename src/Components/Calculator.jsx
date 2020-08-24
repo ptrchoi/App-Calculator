@@ -60,8 +60,6 @@ class Calculator extends React.Component {
 		let { operand1, operator } = curOperation;
 		let { result, prevInput } = calcMem;
 
-		console.log('Calculator: handleOperation() - op: ', op, ' operand: ', operand);
-
 		// Edge case: [op] directly after [=]
 		if (prevInput === 'equals') {
 			operand1 = result;
@@ -91,8 +89,6 @@ class Calculator extends React.Component {
 		let { curOperation, calcMem } = this.state;
 		let { operand1, operator, operand2 } = curOperation;
 		let { result, prevInput, prevOperator, prevOperand } = calcMem;
-
-		console.log('Calculator: handleEquals() - prevInput: ', prevInput);
 
 		// Edge case: [=] directly after [op]
 		if (prevInput === 'operator') {
@@ -126,23 +122,18 @@ class Calculator extends React.Component {
 		});
 	}
 	handleModifiedResult(updatedNum) {
-		// let { prevInput } = this.state.calcMem;
-
 		// Check for valid #
 		if (isNaN(updatedNum)) updatedNum = 0;
 
 		// If [backspace] on a result, update the modified result
-		// if (prevInput === 'equals') {
 		this.setState({
 			calcMem: {
 				result: updatedNum,
 				prevInput: 'number'
 			}
 		});
-		// }
 	}
 	handleClear() {
-		// console.log('Calculator: handleClear');
 		this.setState({
 			operationQueue: [],
 			curOperation: {
@@ -151,7 +142,7 @@ class Calculator extends React.Component {
 				operand2: 0
 			},
 			calcMem: {
-				result: null, // need to pass this val to Inputs
+				result: null,
 				prevInput: null,
 				prevOperator: 'none',
 				prevOperand: null
