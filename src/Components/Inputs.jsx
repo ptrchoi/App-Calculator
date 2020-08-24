@@ -1,15 +1,25 @@
+// LIBRARIES
 import React from 'react';
 import $ from 'jquery';
+
+// COMPONENTS
 import Display from './Display';
 import InfoModal from './InfoModal';
 
+// LOCAL FUNCTIONS
 function convertDigitsToFloat(numArr) {
 	let n = numArr.toString();
 	n = n.replace(/,/g, '');
 	n = parseFloat(n);
-
 	return n;
 }
+function popArray(arr) {
+	arr.pop();
+	if (arr.length < 1) arr = [ 0 ];
+	return arr;
+}
+
+// INPUTS COMPONENT CLASS
 class Inputs extends React.Component {
 	constructor(props) {
 		super(props);
@@ -18,23 +28,22 @@ class Inputs extends React.Component {
 			curDigitArr: [],
 			curOperand: 0,
 			decimal: false,
-			displayState: 'input' // input OR result
+			displayState: 'input' // input || result
 		};
 
 		document.addEventListener('keydown', this.handleKeyDown);
 
 		this.handleKeyDown = this.handleKeyDown.bind(this);
 		this.animateButton = this.animateButton.bind(this);
+		this.showInfo = this.showInfo.bind(this);
+		this.hideInfo = this.hideInfo.bind(this);
 
 		this.handleDigit = this.handleDigit.bind(this);
 		this.handleDecimal = this.handleDecimal.bind(this);
 		this.handleOperator = this.handleOperator.bind(this);
 		this.handleEquals = this.handleEquals.bind(this);
-
-		this.handleBack = this.handleBack.bind(this);
+		this.handleBackspace = this.handleBackspace.bind(this);
 		this.handleClear = this.handleClear.bind(this);
-		this.showInfo = this.showInfo.bind(this);
-		this.hideInfo = this.hideInfo.bind(this);
 	}
 	componentWillUnmount() {
 		document.removeEventListener('keydown', this.handleKeyDown);
@@ -83,10 +92,10 @@ class Inputs extends React.Component {
 
 		// Start a new number (replace digit array)
 		if (prevInput === 'equals' || prevInput === 'operator') {
-			curDigitArr = digit;
+			curDigitArr = [ digit ];
 			decimal = false; // reset decimal flag on new number
 		} else if (digit === '0' && curDigitArr.length === 0)
-			// Ignore if a leading zero
+			// Ignore leading zero
 			return;
 		else
 			// Else concat to existing digit array
@@ -120,7 +129,7 @@ class Inputs extends React.Component {
 			displayState: 'input'
 		});
 
-		// Notify parent of digit input (including '.' as a number type of input)
+		// Notify parent of digit input
 		this.props.onDigit();
 	}
 	handleOperator(e) {
@@ -134,7 +143,9 @@ class Inputs extends React.Component {
 		// Special case: [op] directly after [=], should continue to display prev result until new number input
 		if (prevInput === 'equals') display = 'result';
 
-		// Upon operator input, set curOperand
+		console.log('Inputs - handleOperator() prevInput: ', prevInput, ' curDigitArr: ', this.state.curDigitArr);
+
+		// Upon operator input, set curOperand from digit array
 		let operand = convertDigitsToFloat(this.state.curDigitArr);
 		this.setState({
 			curOperand: operand,
@@ -155,48 +166,50 @@ class Inputs extends React.Component {
 		});
 
 		// Notify parent of equals input and pass current Operand
-		this.props.onEquals(convertDigitsToFloat(operand));
+		this.props.onEquals(operand);
+
+		// this.props.onEquals(convertDigitsToFloat(operand));
 	}
-	handleBack(e) {
+	handleBackspace(e) {
 		e.preventDefault();
 		this.animateButton(e.currentTarget);
 
-		// Get what's currently displayed (input or result)
 		let { curDigitArr, displayState } = this.state;
 
+		// If current state is result, backspace on result
 		if (displayState === 'result') {
 			let { result } = this.props.calcMem;
 
-			// Ignore/return if invalid number
+			// Ignore/return if result is invalid number
 			if (isNaN(result) || result === null || result.length <= 0 || result === 0) return;
 
-			// Convert result into an array of digits
-			result = Array.from(String(result), Number);
+			// Else convert result into an array of digits
+			let resultArr = Array.from(String(result), Number);
 
-			// Search/replace any decimal (ie.NaN)
-			result.forEach((item, i) => {
-				if (isNaN(item)) result[i] = '.';
+			// Search/replace any decimal which Array.from method converts to NaN
+			resultArr.forEach((item, i) => {
+				if (isNaN(item)) resultArr[i] = '.';
 			});
-			result.pop();
 
-			// If result = [], set to zero before passing to parent
-			if (result.length < 1) result = 0;
-			else
-				// Pass new result back to parent as float
-				this.props.onBackspace(convertDigitsToFloat(result));
+			// Remove last digit from array and update curDigitArr with modified result
+			curDigitArr = popArray(resultArr);
+			displayState = 'input';
 
-			this.setState({
-				displayState: 'result'
-			});
+			// Pass new result back to parent as float
+			this.props.onModifiedResult(convertDigitsToFloat(curDigitArr));
 		} else {
-			if (curDigitArr.length > 0) curDigitArr.pop();
+			// Else if current state is input, modify current digit array
 
-			this.setState({
-				curDigitArr: curDigitArr
-			});
+			// Remove last digit from array if valid #
+			if (curDigitArr.length > 0 || convertDigitsToFloat(curDigitArr) !== 0) curDigitArr = popArray(curDigitArr);
+
 			// Notify parent of digit input
 			this.props.onDigit();
 		}
+		this.setState({
+			curDigitArr: curDigitArr,
+			displayState: displayState
+		});
 	}
 	handleClear(e) {
 		e.preventDefault();
@@ -239,7 +252,7 @@ class Inputs extends React.Component {
 						<i className="fas fa-info-circle" />
 					</button>
 					<InfoModal show={this.state.showInfo} handleClose={this.hideInfo} />
-					<button id="back" className="function-button" value={'Backspace'} onClick={this.handleBack}>
+					<button id="back" className="function-button" value={'Backspace'} onClick={this.handleBackspace}>
 						<i className="fas fa-backspace" />
 					</button>
 				</div>
@@ -304,261 +317,3 @@ class Inputs extends React.Component {
 }
 
 export default Inputs;
-
-// constructor(props) {
-// 	super(props);
-
-// 	this.state = {
-// 		inputs: {
-// 			prevInputType: null,
-// 			curInputType: null,
-// 			startNewCalc: false
-// 		},
-// 		number: {
-// 			digits: [],
-// 			decimal: false,
-// 			value: null
-// 		},
-// 		operation: {
-// 			opType: null,
-// 			operand: null,
-// 			operator: null
-// 		},
-// 		calculation: {
-// 			replaceQueue: false,
-// 			x: null,
-// 			y: null,
-// 			op: null
-// 		},
-// 		outputs: {
-// 			// result: null,
-// 			toDisplay: null
-// 		},
-// 		memory: {
-// 			prevNum: null,
-// 			prevOp: null
-// 		}
-// 	};
-// componentWillReceiveProps(props) {
-// 	console.log('componentWillReceiveProps - props: ', props);
-// 	if (props.result !== null) {
-// 		this.setState({
-// 			outputs: {
-// 				result: props.result,
-// 				toDisplay: props.result
-// 			}
-// 		});
-// 	}
-// }
-// handleDigit(e) {
-// 	e.preventDefault();
-
-// 	let { inputs, number } = this.state;
-// 	let { digits, decimal, value } = number;
-// 	let { prevInputType, curInputType, startNewCalc } = inputs;
-
-// 	let digit = e.target.value;
-// 	let validatedDigit = [];
-
-// 	this.animateButton(e.target);
-
-// 	//Test for number input immediately following a result. If so, reset number.
-// 	if (curInputType !== 'NUM') {
-// 		//Test for number input immediately following a result. If so, reset number.
-// 		if (curInputType === 'CALC') {
-// 			startNewCalc = true;
-// 			digits = [];
-// 			value = null;
-// 			decimal = false;
-// 		} else {
-// 			startNewCalc = false;
-// 		}
-// 		prevInputType = curInputType;
-// 		curInputType = 'NUM';
-// 	}
-
-// 	//Test Digit input for number or decimal
-// 	//If decimal, format decimal input
-// 	if (digit === '.') {
-// 		//If a leading decimal, add a leading zero
-// 		if (digits.length < 1) {
-// 			validatedDigit = [ 0, '.' ];
-// 			decimal = true;
-// 		} else if (!decimal) {
-// 			//If the number doesn't already have a decimal, add it
-// 			validatedDigit = [ '.' ];
-// 			decimal = true;
-// 		} else {
-// 			//Else ignore decimal input as there is already a decimal in the number
-// 			return;
-// 		}
-// 		//Else input is a digit, add digit
-// 	} else {
-// 		//Check for non-leading zero (don't allow multiple leading zeros)
-// 		if (digits.length === 0 || Number(digits[0]) !== 0 || decimal === true) {
-// 			validatedDigit = [ digit ];
-// 		} else {
-// 			//Else ignore zero input
-// 			return;
-// 		}
-// 	}
-
-// 	let updatedDigits = digits.concat(validatedDigit);
-// 	let updatedNum = convertDigitsToFloat(updatedDigits);
-
-// 	this.setState({
-// 		inputs: {
-// 			prevInputType: prevInputType,
-// 			curInputType: curInputType,
-// 			startNewCalc: startNewCalc
-// 		},
-// 		number: {
-// 			digits: updatedDigits,
-// 			decimal: decimal,
-// 			value: updatedNum
-// 		},
-// 		outputs: {
-// 			toDisplay: updatedDigits
-// 		}
-// 	});
-// }
-// handleOperator(e) {
-// 	e.preventDefault();
-
-// 	let { inputs, number, operation, outputs, memory } = this.state;
-// 	// let { inputs, number, operation, memory } = this.state;
-// 	let { prevInputType, curInputType, startNewCalc } = inputs;
-// 	let { value } = number;
-// 	let { opType } = operation;
-// 	let { toDisplay } = outputs;
-// 	let { prevNum } = memory;
-
-// 	// let result = this.props.result;
-
-// 	// console.log('handleOperator() - outputs.result: ', result);
-
-// 	let result = this.props.result;
-
-// 	let newOperator = e.currentTarget.value;
-// 	let newType = opType;
-// 	let newOperand = value;
-
-// 	this.animateButton(e.currentTarget);
-
-// 	//Explicitly test for null, since value may equal '0'
-// 	if (value === null) {
-// 		newOperand = prevNum;
-// 	}
-
-// 	prevInputType = curInputType;
-// 	curInputType = 'OP';
-
-// 	//OP after NUM
-// 	if (prevInputType === 'NUM') {
-// 		if (startNewCalc) {
-// 			newType = 'NEW';
-// 		} else {
-// 			newType = 'ADD';
-// 		}
-// 	} else if (prevInputType === 'OP') {
-// 		//OP after OP, Consecutive Operators entered
-// 		newType = 'SWAP';
-// 	} else {
-// 		//(prevInputType === "CALC"), OP after CALC
-// 		newType = 'ADD';
-// 		// newOperand = result;
-
-// 		/*-----------
-// 		Here's the problem - <toDisplay> is not getting updated from prev Calculator result
-// 		-------------------*/
-// 		newOperand = result; // newOperand gets prev result (ie: toDisplay)
-// 	}
-
-// 	//The data/object to pass to parent/Calculator.jsx
-// 	operation = {
-// 		opType: newType,
-// 		operand: newOperand,
-// 		operator: newOperator
-// 	};
-
-// 	//Operation started, so set storedResult and reset current digit/number
-// 	this.setState({
-// 		inputs: {
-// 			prevInputType: prevInputType,
-// 			curInputType: curInputType
-// 		},
-// 		number: {
-// 			digits: [],
-// 			decimal: false,
-// 			value: null
-// 		},
-// 		operation: operation,
-// 		outputs: {
-// 			toDisplay: newOperand
-// 		},
-// 		memory: {
-// 			prevNum: newOperand,
-// 			prevOp: newOperator
-// 		}
-// 	});
-
-// 	this.props.onOperation(operation);
-// }
-// handleEquals(e) {
-// 	e.preventDefault();
-
-// 	// let { inputs, number, operation, calculation, outputs, memory } = this.state;
-// 	let { inputs, number, operation, calculation, memory } = this.state;
-// 	let { value } = number;
-// 	let { prevInputType, curInputType, startNewCalc } = inputs;
-// 	let { operator } = operation;
-// 	let { replaceQueue, x, y, op } = calculation;
-// 	// let { result } = outputs;
-// 	let { prevOp } = memory;
-
-// 	let result = this.props.result;
-
-// 	// console.log('handleEquals() - outputs.result: ', result);
-
-// 	this.animateButton(e.currentTarget);
-
-// 	prevInputType = curInputType;
-// 	curInputType = 'CALC';
-
-// 	//CALC after NUM after OP
-// 	if (prevInputType === 'NUM' && !startNewCalc) {
-// 		//NORMAL Calculation [queue + last operation + curNum]
-// 		y = value;
-// 		op = prevOp;
-// 	} else if (prevInputType === 'OP') {
-// 		//CALC immediately after OP [result + operator + result]
-// 		replaceQueue = true;
-// 		x = result;
-// 		y = result;
-// 		op = operator;
-// 	} else {
-// 		//CALC after CALC || startNewCalc, [result + last operation + curNum]
-// 		replaceQueue = true;
-// 		x = result;
-// 		y = value;
-// 		op = prevOp;
-// 	}
-
-// 	//The data/object to pass to parent/Calculator.jsx
-// 	calculation = {
-// 		replaceQueue: replaceQueue,
-// 		x: x,
-// 		y: y,
-// 		op: op
-// 	};
-
-// 	this.setState({
-// 		inputs: {
-// 			prevInputType: prevInputType,
-// 			curInputType: curInputType,
-// 			startNewCalc: startNewCalc
-// 		},
-// 		calculation: calculation
-// 	});
-// 	this.props.onEquals(calculation);
-// }
