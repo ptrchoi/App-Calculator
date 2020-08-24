@@ -19,7 +19,7 @@ function Display(props) {
 	let n = props.toDisplay;
 
 	// Error handle number value
-	if (n === undefined || isNaN(n) || n === Infinity) {
+	if (n === undefined || n === NaN || n === Infinity) {
 		return (
 			<div>
 				<p id="display">ERR</p>
