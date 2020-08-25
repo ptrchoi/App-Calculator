@@ -31,8 +31,6 @@ class Inputs extends React.Component {
 			displayState: 'input' // input || result
 		};
 
-		document.addEventListener('keydown', this.handleKeyDown);
-
 		this.handleKeyDown = this.handleKeyDown.bind(this);
 		this.animateButton = this.animateButton.bind(this);
 		this.showInfo = this.showInfo.bind(this);
@@ -44,6 +42,12 @@ class Inputs extends React.Component {
 		this.handleEquals = this.handleEquals.bind(this);
 		this.handleBackspace = this.handleBackspace.bind(this);
 		this.handleClear = this.handleClear.bind(this);
+	}
+	componentDidMount() {
+		let self = this;
+		document.addEventListener('keydown', (e) => {
+			this.handleKeyDown(e, self);
+		});
 	}
 	componentWillUnmount() {
 		document.removeEventListener('keydown', this.handleKeyDown);
@@ -59,7 +63,7 @@ class Inputs extends React.Component {
 			button.classList.remove('pulse');
 		}
 	}
-	handleKeyDown(e) {
+	handleKeyDown(e, self) {
 		e.preventDefault();
 
 		let key = e.key;
@@ -79,12 +83,13 @@ class Inputs extends React.Component {
 			button = $(`button[value="i"]`);
 		}
 		if (button) {
+			// Animate button for keyboard input only. Touch already has default selection "animation".
+			self.animateButton(document.getElementById(button[0].id));
 			button.click();
 		}
 	}
 	handleDigit(e) {
 		e.preventDefault();
-		this.animateButton(e.target);
 
 		let { curDigitArr, decimal } = this.state;
 		let { prevInput } = this.props.calcMem;
@@ -112,7 +117,6 @@ class Inputs extends React.Component {
 	}
 	handleDecimal(e) {
 		e.preventDefault();
-		this.animateButton(e.target);
 
 		let { curDigitArr, decimal } = this.state;
 		let decimalVal = '.';
@@ -134,27 +138,31 @@ class Inputs extends React.Component {
 	}
 	handleOperator(e) {
 		e.preventDefault();
-		this.animateButton(e.currentTarget);
 
-		let { prevInput } = this.props.calcMem;
+		let { curOperand } = this.state;
+		let { prevInput } = this.props.calcMem; // null/number/operator/equals
 		let op = e.currentTarget.value;
 		let display = 'input';
 
-		// Special case: [op] directly after [=], should continue to display prev result until new number input
-		if (prevInput === 'equals') display = 'result';
+		// Edge case: [op] directly after [=] should continue to display prev result until new number input
+		// if (prevInput === 'equals') display = 'result';
 
-		// Upon operator input, set curOperand from digit array
-		let operand = convertDigitsToFloat(this.state.curDigitArr);
-		this.setState({
-			curOperand: operand,
-			displayState: display
-		});
+		// If ([op] directly after [num]), get new operand and update state.
+		if (prevInput === ('number' || null)) {
+			// Set new curOperand from digit array
+			curOperand = convertDigitsToFloat(this.state.curDigitArr);
+			this.setState({
+				curOperand: curOperand,
+				displayState: display
+			});
+		}
+		// ELSE (prevInput === ('operator' || 'equals')) >> don't update state. Pass the new operator to parent to swap. Pass prev operand for no change (ie. keep displaying prev operand or result).
+
 		// Notify parent of operator input and pass current Operand
-		this.props.onOperator(op, operand);
+		this.props.onOperator(op, curOperand);
 	}
 	handleEquals(e) {
 		e.preventDefault();
-		this.animateButton(e.currentTarget);
 
 		// Upon equals input, set curOperand
 		let operand = convertDigitsToFloat(this.state.curDigitArr);
@@ -170,7 +178,6 @@ class Inputs extends React.Component {
 	}
 	handleBackspace(e) {
 		e.preventDefault();
-		this.animateButton(e.currentTarget);
 
 		let { curDigitArr, displayState } = this.state;
 
@@ -211,7 +218,6 @@ class Inputs extends React.Component {
 	}
 	handleClear(e) {
 		e.preventDefault();
-		this.animateButton(e.currentTarget);
 
 		this.props.onClear();
 
@@ -223,16 +229,14 @@ class Inputs extends React.Component {
 		});
 	}
 	showInfo() {
-		// console.log('showInfo()');
-		// this.setState({
-		// 	showInfo: true
-		// });
+		this.setState({
+			showInfo: true
+		});
 	}
 	hideInfo() {
-		// console.log('hideInfo()');
-		// this.setState({
-		// 	showInfo: false
-		// });
+		this.setState({
+			showInfo: false
+		});
 	}
 	render() {
 		let toDisplay = this.state.curDigitArr;

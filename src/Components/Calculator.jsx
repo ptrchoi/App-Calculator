@@ -60,18 +60,25 @@ class Calculator extends React.Component {
 		let { operand1, operator } = curOperation;
 		let { result, prevInput } = calcMem;
 
-		// Edge case: [op] directly after [=]
+		// Edge case1: [op] directly after [=]
 		if (prevInput === 'equals') {
 			operand1 = result;
+			operationQueue.push(operand1, op);
 		} else {
-			// Else just add new operand and operation as normal
-			operationQueue.push(operand, op);
+			if (prevInput === 'operator') {
+				// Edge case2: [op] directly after [op]
+				// replace end of queue (previous op)
+				operationQueue.splice(operationQueue.length - 1, 1, op);
+			} else {
+				// Else just add new operand and operation as normal
+				operationQueue.push(operand, op);
 
-			// Start new calculation
-			if (operator === 'none') operand1 = operand;
-			else
-				// Else Replace operand1 w/ operationQueue
-				operand1 = operationQueue;
+				// Start new calculation
+				if (operator === 'none') operand1 = operand;
+				else
+					// Else Replace operand1 w/ operationQueue
+					operand1 = operationQueue;
+			}
 		}
 		this.setState({
 			operationQueue: operationQueue,
@@ -89,22 +96,36 @@ class Calculator extends React.Component {
 		let { curOperation, calcMem } = this.state;
 		let { operand1, operator, operand2 } = curOperation;
 		let { result, prevInput, prevOperator, prevOperand } = calcMem;
+		let performCalculation = true;
 
-		// Edge case: [=] directly after [op]
-		if (prevInput === 'operator') {
-			operand1 = result;
-			operand2 = result;
+		// Edge case1: New calculation of [=] directly after [num] with no operator
+		if (operator === 'none' && prevOperator === undefined) {
+			operator = prevOperator;
+			operand2 = prevOperand;
+			result = operand;
+			performCalculation = false;
+		} else if (prevInput === 'operator') {
+			// Edge case2: [=] directly after [op]
+			if (result) {
+				operand1 = result;
+				operand2 = result;
+			} else {
+				operand1 = operand;
+				operand2 = operand;
+			}
 		} else if (prevInput === 'equals') {
-			// Edge case: [=] directly after [=]
+			// Edge case3: [=] directly after [=]
 			operand1 = result;
 			operator = prevOperator;
 			operand2 = prevOperand;
 		} else {
+			// Else normal operation
 			operand2 = operand;
 		}
 
 		// If operand1 = operationQueue, omit operator since already captured in the queue
-		result = calculate(operand1, operator, operand2, Array.isArray(operand1));
+		let ignoreOp = Array.isArray(operand1);
+		if (performCalculation) result = calculate(operand1, operator, operand2, ignoreOp);
 
 		this.setState({
 			operationQueue: [],
@@ -159,6 +180,7 @@ class Calculator extends React.Component {
 					onModifiedResult={this.handleModifiedResult}
 					onClear={this.handleClear}
 					calcMem={this.state.calcMem}
+					curOperation={this.state.curOperation}
 				/>
 			</div>
 		);
