@@ -18,11 +18,16 @@ function InfoModal(props) {
 	return (
 		<div className={modalShowHideClass}>
 			<section className="modal-window">
-				<h1>History</h1>
-				<button id="clearTape" className="clearTapeButton" onClick={handleClearTape}>
-					<i className="fas fa-copyright" />
-				</button>
-				<div>
+				<div className="modal-header">
+					<h1>History</h1>
+					<button id="clearTapeBtn" className="modal-button" onClick={handleClearTape}>
+						<i className="fas fa-trash" />
+					</button>
+					<button id="modalCloseBtn" className="modal-button" onClick={handleClose}>
+						<i className="fas fa-times" />
+					</button>
+				</div>
+				<div className="tape-display-wrapper">
 					{tapeDisplay}
 					{/* <h3>
 						Created by{' '}
@@ -32,9 +37,6 @@ function InfoModal(props) {
 					</h3> */}
 				</div>
 				{children}
-				<button className="modal-close-button" onClick={handleClose}>
-					<i className="fas fa-times" />
-				</button>
 			</section>
 		</div>
 	);

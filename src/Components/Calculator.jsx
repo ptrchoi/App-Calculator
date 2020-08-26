@@ -187,8 +187,22 @@ class Calculator extends React.Component {
 		});
 	}
 	handleClearTape() {
+		let { operationQueue, curOperation, calcMem } = this.state;
+		let { operand1, operator, operand2 } = curOperation;
+		let { result, prevInput, prevOperator, prevOperand } = calcMem;
+
 		this.setState({
+			operationQueue: operationQueue,
+			curOperation: {
+				operand1: operand1,
+				operator: operator,
+				operand2: operand2
+			},
 			calcMem: {
+				result: result,
+				prevInput: prevInput,
+				prevOperator: prevOperator,
+				prevOperand: prevOperand,
 				calcTape: []
 			}
 		});
