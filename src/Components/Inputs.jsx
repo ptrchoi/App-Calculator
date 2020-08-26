@@ -257,6 +257,7 @@ class Inputs extends React.Component {
 						show={this.state.showInfo}
 						calcTape={this.props.calcMem.calcTape}
 						handleClose={this.hideInfo}
+						handleClearTape={() => this.props.onClearTape()}
 					/>
 					<button id="back" className="function-button" value={'Backspace'} onClick={this.handleBackspace}>
 						<i className="fas fa-backspace" />

@@ -1,7 +1,7 @@
 import React from 'react';
 
 function InfoModal(props) {
-	let { show, calcTape, children, handleClose } = props;
+	let { show, calcTape, children, handleClose, handleClearTape } = props;
 
 	const modalShowHideClass = show ? 'modal-overlay modal-show' : 'modal-overlay modal-hide';
 
@@ -19,6 +19,9 @@ function InfoModal(props) {
 		<div className={modalShowHideClass}>
 			<section className="modal-window">
 				<h1>History</h1>
+				<button id="clearTape" className="clearTapeButton" onClick={handleClearTape}>
+					<i className="fas fa-copyright" />
+				</button>
 				<div>
 					{tapeDisplay}
 					{/* <h3>

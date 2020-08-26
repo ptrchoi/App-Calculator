@@ -49,6 +49,7 @@ class Calculator extends React.Component {
 		this.handleEquals = this.handleEquals.bind(this);
 		this.handleModifiedResult = this.handleModifiedResult.bind(this);
 		this.handleClear = this.handleClear.bind(this);
+		this.handleClearTape = this.handleClearTape.bind(this);
 	}
 	// For input sequence tracking
 	handleDigitInput() {
@@ -168,6 +169,7 @@ class Calculator extends React.Component {
 		});
 	}
 	handleClear() {
+		let { calcTape } = this.state.calcMem;
 		this.setState({
 			operationQueue: [],
 			curOperation: {
@@ -180,6 +182,13 @@ class Calculator extends React.Component {
 				prevInput: null,
 				prevOperator: 'none',
 				prevOperand: null,
+				calcTape: calcTape
+			}
+		});
+	}
+	handleClearTape() {
+		this.setState({
+			calcMem: {
 				calcTape: []
 			}
 		});
@@ -193,6 +202,7 @@ class Calculator extends React.Component {
 					onEquals={this.handleEquals}
 					onModifiedResult={this.handleModifiedResult}
 					onClear={this.handleClear}
+					onClearTape={this.handleClearTape}
 					calcMem={this.state.calcMem}
 					curOperation={this.state.curOperation}
 				/>
