@@ -1,5 +1,8 @@
+// Libraries
 import React from 'react';
+import { v4 as uuidv4 } from 'uuid';
 
+// InfoModal Component Class
 function InfoModal(props) {
 	let { show, calcTape, children, handleClose, handleClearTape } = props;
 
@@ -7,7 +10,7 @@ function InfoModal(props) {
 
 	const renderCalcTape = () => {
 		return calcTape.map((formula) => {
-			return <p>{formula}</p>;
+			return <p key={uuidv4()}>{formula}</p>;
 		});
 	};
 
