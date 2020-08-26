@@ -251,9 +251,13 @@ class Inputs extends React.Component {
 						<i className="fas fa-copyright" />
 					</button>
 					<button id="info" className="function-button" value={'i'} onClick={this.showInfo}>
-						<i className="fas fa-info-circle" />
+						<i className="fas fa-clock" />
 					</button>
-					<InfoModal show={this.state.showInfo} handleClose={this.hideInfo} />
+					<InfoModal
+						show={this.state.showInfo}
+						calcTape={this.props.calcMem.calcTape}
+						handleClose={this.hideInfo}
+					/>
 					<button id="back" className="function-button" value={'Backspace'} onClick={this.handleBackspace}>
 						<i className="fas fa-backspace" />
 					</button>

@@ -16,9 +16,11 @@ function calculate(x, op, y, ignoreOp) {
 	if (ignoreOp) formulaStr = convertArrToString([ x, y ]);
 	else formulaStr = convertArrToString([ x, op, y ]);
 
-	console.log('formulaStr: ', formulaStr);
-
-	return eval(formulaStr);
+	let answer = eval(formulaStr);
+	return {
+		formula: formulaStr + ' = ' + answer,
+		answer: answer
+	};
 }
 
 // CALCULATOR COMPONENT CLASS
@@ -37,7 +39,8 @@ class Calculator extends React.Component {
 				result: null,
 				prevInput: null,
 				prevOperator: 'none',
-				prevOperand: null
+				prevOperand: null,
+				calcTape: []
 			}
 		};
 
@@ -49,16 +52,18 @@ class Calculator extends React.Component {
 	}
 	// For input sequence tracking
 	handleDigitInput() {
+		let { calcTape } = this.state.calcMem;
 		this.setState({
 			calcMem: {
-				prevInput: 'number'
+				prevInput: 'number',
+				calcTape: calcTape
 			}
 		});
 	}
 	handleOperation(op, operand) {
 		let { operationQueue, curOperation, calcMem } = this.state;
 		let { operand1, operator } = curOperation;
-		let { result, prevInput } = calcMem;
+		let { result, prevInput, calcTape } = calcMem;
 
 		// Edge case1: [op] directly after [=]
 		if (prevInput === 'equals') {
@@ -88,14 +93,15 @@ class Calculator extends React.Component {
 			},
 			calcMem: {
 				result: result,
-				prevInput: 'operator'
+				prevInput: 'operator',
+				calcTape: calcTape
 			}
 		});
 	}
 	handleEquals(operand) {
 		let { curOperation, calcMem } = this.state;
 		let { operand1, operator, operand2 } = curOperation;
-		let { result, prevInput, prevOperator, prevOperand } = calcMem;
+		let { result, prevInput, prevOperator, prevOperand, calcTape } = calcMem;
 		let performCalculation = true;
 
 		// Edge case1: New calculation of [=] directly after [num] with no operator
@@ -125,7 +131,13 @@ class Calculator extends React.Component {
 
 		// If operand1 = operationQueue, omit operator since already captured in the queue
 		let ignoreOp = Array.isArray(operand1);
-		if (performCalculation) result = calculate(operand1, operator, operand2, ignoreOp);
+		if (performCalculation) {
+			let calcObj = calculate(operand1, operator, operand2, ignoreOp);
+			result = calcObj.answer;
+			console.log(calcObj.formula);
+			// Add current calculation to calcTape
+			calcTape.push(calcObj.formula);
+		}
 
 		this.setState({
 			operationQueue: [],
@@ -138,7 +150,8 @@ class Calculator extends React.Component {
 				result: result,
 				prevInput: 'equals',
 				prevOperator: operator,
-				prevOperand: operand2
+				prevOperand: operand2,
+				calcTape: calcTape
 			}
 		});
 	}
@@ -166,7 +179,8 @@ class Calculator extends React.Component {
 				result: null,
 				prevInput: null,
 				prevOperator: 'none',
-				prevOperand: null
+				prevOperand: null,
+				calcTape: []
 			}
 		});
 	}
